@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora CHMOD Linux</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        ::selection {
+            background: #555;
+            color: #eee;
+        }
+
+        @font-face {
+            font-family: 'Hack Nerd Font';
+            src: url('HackNerdFont-Regular.ttf') format('truetype');
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Hack Nerd Font', monospace;
+            background: #121212;
+            color: #ccc;
+            background-image:
+                linear-gradient(90deg, rgba(255, 255, 255, .02) 1px, transparent 1px),
+                linear-gradient(rgba(255, 255, 255, .02) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 2rem;
+            color: #fff;
+        }
+
+        .description {
+            text-align: center;
+            color: #aaa;
+            font-size: .95rem;
+            margin-top: 8px;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .badge {
+            padding: 7px 14px;
+            border-radius: 12px;
+            border: 1px solid #555;
+            color: #aaa;
+            font-size: .9rem;
+            font-weight: bold;
+        }
+
+        .badge.green {
+            color: #00ff88;
+            border-color: #00ff88;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            padding: 14px;
+            backdrop-filter: blur(12px);
+            background: rgba(50, 50, 50, .28);
+            border: 1px solid rgba(100, 100, 100, .35);
+            border-radius: 12px;
+        }
+
+        .card h2 {
+            margin: 0 0 15px;
+            color: #fff;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+
+        .permission-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .permission-row .title {
+            color: #aaa;
+            font-weight: bold;
+        }
+
+        .checks {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .checks label {
+            background: rgba(255, 255, 255, .03);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            cursor: pointer;
+            color: #ddd;
+            user-select: none;
+        }
+
+        .checks input {
+            margin-right: 6px;
+        }
+
+        .result {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .result-row {
+            position: relative;
+            padding: 14px;
+            backdrop-filter: blur(12px);
+            background: rgba(50, 50, 50, .28);
+            border: 1px solid rgba(100, 100, 100, .35);
+            border-radius: 12px;
+        }
+
+        .label {
+            display: block;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: .85rem;
+        }
+
+        .value {
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: bold;
+            word-break: break-word;
+        }
+
+        .copy-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .help {
+            margin-top: 25px;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(50, 50, 50, .28);
+            border: 1px solid rgba(100, 100, 100, .35);
+            color: #aaa;
+            line-height: 1.7;
+        }
+
+        .binary {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(50, 50, 50, .28);
+            border: 1px solid rgba(100, 100, 100, .35);
+        }
+
+        .binary h2 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .bin-row {
+            margin: 8px 0;
+            color: #ddd;
+        }
+
+        .green {
+            color: #00ff88;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(60, 60, 60, .75);
+            backdrop-filter: blur(8px);
+            padding: 12px 18px;
+            border-radius: 12px;
+            color: #ddd;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: .3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        hr {
+            border-color: #333;
+            margin: 18px 0;
+        }
+
+        @media(max-width:700px) {
+            .permission-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Calculadora CHMOD Linux</h1>
+        <p class="description">
+            Genera permisos Linux en formato simbólico y octal<br>
+            Selecciona permisos para Usuario, Grupo y Otros
+        </p>
+
+        <div class="badges">
+            <div class="badge">Sistema Linux</div>
+            <div class="badge green" id="octalBadge">0000</div>
+            <div class="badge" id="symbolBadge">---------</div>
+        </div>
+
+        <div class="grid">
+
+            <div class="card">
+
+                <h2>Bits Especiales</h2>
+
+                <div class="checks">
+                    <label><input type="checkbox" id="suid">SUID (4000)</label>
+                    <label><input type="checkbox" id="sgid">SGID (2000)</label>
+                    <label><input type="checkbox" id="sticky">Sticky (1000)</label>
+                </div>
+
+                <hr>
+
+                <h2>Permisos</h2>
+
+                <div class="permission-row">
+                    <div class="title">Usuario</div>
+                    <div class="checks">
+                        <label><input type="checkbox" data-target="u" data-val="r">Leer</label>
+                        <label><input type="checkbox" data-target="u" data-val="w">Escribir</label>
+                        <label><input type="checkbox" data-target="u" data-val="x">Ejecutar</label>
+                    </div>
+                </div>
+
+                <div class="permission-row">
+                    <div class="title">Grupo</div>
+                    <div class="checks">
+                        <label><input type="checkbox" data-target="g" data-val="r">Leer</label>
+                        <label><input type="checkbox" data-target="g" data-val="w">Escribir</label>
+                        <label><input type="checkbox" data-target="g" data-val="x">Ejecutar</label>
+                    </div>
+                </div>
+
+                <div class="permission-row">
+                    <div class="title">Otros</div>
+                    <div class="checks">
+                        <label><input type="checkbox" data-target="o" data-val="r">Leer</label>
+                        <label><input type="checkbox" data-target="o" data-val="w">Escribir</label>
+                        <label><input type="checkbox" data-target="o" data-val="x">Ejecutar</label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <h2>Resultado</h2>
+
+                <div class="result">
+
+                    <div class="result-row">
+                        <span class="label">Octal</span>
+                        <span class="value" id="octal">0000</span>
+                        <i class="fas fa-copy copy-icon" onclick="copyText('octal')"></i>
+                    </div>
+
+                    <div class="result-row">
+                        <span class="label">Simbólico</span>
+                        <span class="value" id="symbolic">---------</span>
+                        <i class="fas fa-copy copy-icon" onclick="copyText('symbolic')"></i>
+                    </div>
+
+                    <div class="result-row">
+                        <span class="label">Comando CHMOD (Octal)</span>
+                        <span class="value" id="cmdOctal">chmod 0000 archivo</span>
+                        <i class="fas fa-copy copy-icon" onclick="copyText('cmdOctal')"></i>
+                    </div>
+
+                    <div class="result-row">
+                        <span class="label">Comando CHMOD (Letras)</span>
+                        <span class="value" id="cmdLetters">chmod u=,g=,o= archivo</span>
+                        <i class="fas fa-copy copy-icon" onclick="copyText('cmdLetters')"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="binary">
+            <h2>Representación Binaria</h2>
+            <div class="bin-row">Leer = <span class="green">100</span></div>
+            <div class="bin-row">Escribir = <span class="green">010</span></div>
+            <div class="bin-row">Ejecutar = <span class="green">001</span></div>
+            <div class="bin-row">rwx = <span class="green">111</span> = 7</div>
+            <div class="bin-row">SUID = <span class="green">4000</span></div>
+            <div class="bin-row">SGID = <span class="green">2000</span></div>
+            <div class="bin-row">Sticky = <span class="green">1000</span></div>
+        </div>
+
+        <div class="help">
+            <b>Ejemplos rápidos:</b><br>
+            4755 = SUID + ejecutable público<br>
+            2775 = SGID + grupo compartido<br>
+            1777 = Sticky /tmp<br>
+            744 = Usuario total, lectura para resto<br>
+            600 = Archivo privado
+        </div>
+
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        /* ===============================
+           REEMPLAZA SOLO TU <script>
+           =============================== */
+
+        /* Limpiar checks al recargar */
+        window.addEventListener("load", () => {
+            document.querySelectorAll("input[type='checkbox']").forEach(el => {
+                el.checked = false;
+            });
+            update();
+        });
+
+        /* Eventos */
+        const checks = document.querySelectorAll("input");
+        checks.forEach(c => c.addEventListener("change", update));
+
+        function getValue(target) {
+
+            let val = 0;
+            let str = "";
+
+            const r = document.querySelector(`[data-target="${target}"][data-val="r"]`).checked;
+            const w = document.querySelector(`[data-target="${target}"][data-val="w"]`).checked;
+            const x = document.querySelector(`[data-target="${target}"][data-val="x"]`).checked;
+
+            if (r) { val += 4; str += "r"; } else str += "-";
+            if (w) { val += 2; str += "w"; } else str += "-";
+            if (x) { val += 1; str += "x"; } else str += "-";
+
+            return { val, str, r, w, x };
+        }
+
+        function clean(txt) {
+            return txt.replace(/-/g, "");
+        }
+
+        function update() {
+
+            const u = getValue("u");
+            const g = getValue("g");
+            const o = getValue("o");
+
+            const suid = document.getElementById("suid").checked;
+            const sgid = document.getElementById("sgid").checked;
+            const sticky = document.getElementById("sticky").checked;
+
+            const special = (suid ? 4 : 0) + (sgid ? 2 : 0) + (sticky ? 1 : 0);
+            const octal = `${special}${u.val}${g.val}${o.val}`;
+
+            let ux = u.x ? "x" : "-";
+            let gx = g.x ? "x" : "-";
+            let ox = o.x ? "x" : "-";
+
+            if (suid) ux = u.x ? "s" : "S";
+            if (sgid) gx = g.x ? "s" : "S";
+            if (sticky) ox = o.x ? "t" : "T";
+
+            const symbolic =
+                (u.r ? "r" : "-") + (u.w ? "w" : "-") + ux +
+                (g.r ? "r" : "-") + (g.w ? "w" : "-") + gx +
+                (o.r ? "r" : "-") + (o.w ? "w" : "-") + ox;
+
+            document.getElementById("octal").textContent = octal;
+            document.getElementById("symbolic").textContent = symbolic;
+            document.getElementById("octalBadge").textContent = octal;
+            document.getElementById("symbolBadge").textContent = symbolic;
+
+            document.getElementById("cmdOctal").textContent = `chmod ${octal} archivo`;
+
+            /* ==========================
+               COMANDO INTELIGENTE LETRAS
+               ========================== */
+
+            let parts = [];
+
+            const up = clean(u.str);
+            const gp = clean(g.str);
+            const op = clean(o.str);
+
+            if (up) parts.push(`u=${up}`);
+            if (gp) parts.push(`g=${gp}`);
+            if (op) parts.push(`o=${op}`);
+
+            if (suid) parts.push("u+s");
+            if (sgid) parts.push("g+s");
+            if (sticky) parts.push("o+t");
+
+            let cmd = "chmod ";
+
+            if (parts.length === 0) {
+                cmd += "u=,g=,o=";
+            } else {
+                cmd += parts.join(",");
+            }
+
+            cmd += " archivo";
+
+            document.getElementById("cmdLetters").textContent = cmd;
+        }
+
+        function copyText(id) {
+
+            const text = document.getElementById(id).textContent;
+            navigator.clipboard.writeText(text);
+
+            const toast = document.getElementById("toast");
+            toast.textContent = "Copiado: " + text;
+            toast.classList.add("show");
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2000);
+        }
+
+        update();
+    </script>
+
+</body>
+
+</html>
